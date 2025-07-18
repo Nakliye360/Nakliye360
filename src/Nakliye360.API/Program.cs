@@ -47,11 +47,12 @@ builder.Logging.AddConsole();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // veya IP: http://192.168.1.42:3001
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -228,6 +229,11 @@ builder.Services.AddHealthChecksUI(opt =>
 #endregion
 
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5001); // React Native'in erişebilmesi için
+});
+
 
 var app = builder.Build();
 
@@ -237,6 +243,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
  
 }
+
 
 app.UseSerilogRequestLogging(options =>
 {
@@ -263,6 +270,8 @@ app.UseHealthChecksUI(config =>
     config.UIPath = "/health-ui";
 });
 
+app.UseCors("AllowAll");
+
 app.UseCustomMiddlewares();
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -284,7 +293,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors();
 
 
 app.MapControllers();

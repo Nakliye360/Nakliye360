@@ -1,71 +1,78 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Nakliye360.API.CustomAttributes.RoleManagement;
-using Nakliye360.API.Filters;
 using Nakliye360.Application.Abstractions.Services.CustomerManagement;
+using Nakliye360.Application.Abstractions.Session;
 using Nakliye360.Application.Models.DTOs.CustomerManagement;
-using System.ComponentModel.DataAnnotations;
 
-namespace Nakliye360.API.Controllers.CustomerManagement
+namespace Nakliye360.API.Controllers.CustomerManagement;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class CustomerController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CustomerController : ControllerBase
+
+    private readonly ICustomerService _customerService;
+    private readonly ICurrentUserSession _currentUserSession;
+
+    public CustomerController(ICustomerService customerService, ICurrentUserSession currentUserSession)
     {
-        private readonly ICustomerService _customerService;
+        _customerService = customerService;
+        _currentUserSession = currentUserSession;
+    }
 
-        public CustomerController(ICustomerService customerService)
-        {
-            _customerService = customerService;
-        }
+    /// <summary>
+    /// Yeni müşteri oluşturur.
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateCustomerDto dto)
+    {
+        dto.AppUserId = _currentUserSession.UserId;
+        var id = await _customerService.CreateCustomerAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id }, new { id });
+    }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
-        {
-            var customer = await _customerService.GetCustomerByIdAsync(id);
-            return Ok(customer);
-        }
+    /// <summary>
+    /// Mevcut müşteri günceller.
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerDto dto)
+    {
+        if (dto.Id != id)
+            return BadRequest("Id uyuşmuyor.");
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var customers = await _customerService.GetAllAsync();
-            return Ok(customers);
-        }
+        var result = await _customerService.UpdateCustomerAsync(dto);
+        return result ? NoContent() : NotFound();
+    }
 
-        [HttpPost]
-        //[Authorize(Roles = "Admin,Manager")]
-        [HasPermission("Customer.Updated")]
-        [ServiceFilter(typeof(ValidationFilter<CreateCustomerDto>))]
-        public async Task<IActionResult> Create([FromBody] CreateCustomerDto dto)
-        {
+    /// <summary>
+    /// Müşteriyi ID ile getirir.
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var customer = await _customerService.GetCustomerByIdAsync(id);
+        return Ok(customer);
+    }
 
-            var customerId = await _customerService.CreateCustomerAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = customerId }, null);
+    /// <summary>
+    /// Müşteri listesini filtreler.
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetList([FromQuery] CustomerListFilterDto filter)
+    {
+        var list = await _customerService.GetCustomerListAsync(filter);
+        return Ok(list);
+    }
 
-        }
-
-        [HttpPut("{id}")]
-        //[Authorize(Roles = "Admin,Manager")]
-        [HasPermission("Customer.Updated")]
-        [ServiceFilter(typeof(ValidationFilter<UpdateCustomerDto>))]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCustomerDto dto)
-        {
-            if (id != dto.Id)
-                return BadRequest("Route ve body ID'leri eşleşmiyor.");
-
-            var result = await _customerService.UpdateCustomerAsync(dto);
-            return Ok(result);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            await _customerService.DeleteCustomerAsync(id);
-            return NoContent();
-        }
-
+    /// <summary>
+    /// Müşteriyi siler.
+    /// </summary>
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var result = await _customerService.DeleteCustomerAsync(id);
+        return result ? NoContent() : NotFound();
     }
 }

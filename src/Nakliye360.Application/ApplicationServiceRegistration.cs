@@ -2,10 +2,8 @@
 using FluentValidation.AspNetCore;
 using Mapster;
 using MapsterMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Nakliye360.Application.Mapping.CustomerManagement;
-using Nakliye360.Application.Models.DTOs.CustomerManagement;
+using Nakliye360.Application.Mapping.Companies;
 using Nakliye360.Application.Validators.CustomerManagement;
 using System.Reflection;
 
@@ -20,7 +18,7 @@ public static class ApplicationServiceRegistration
         //services.AddValidatorsFromAssemblyContaining<CreateCustomerDtoValidator>();
         // Mapster
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
-        typeAdapterConfig.Scan(typeof(CustomerMappingConfig).Assembly);
+        typeAdapterConfig.Scan(typeof(CompanyMappingConfig).Assembly);
 
         services.AddSingleton(typeAdapterConfig);
         services.AddScoped<IMapper, ServiceMapper>();

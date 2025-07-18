@@ -42,7 +42,7 @@ public class AuthenticationService : IAuthenticationService
         throw new NotImplementedException();
     }
 
-    public async Task<Token> LoginAsync(string usernameOrEmail, string password, int? accessTokenLifeTime)
+    public async Task<Token> LoginAsync(string usernameOrEmail, string password, int? accessTokenLifeTime, string ipAddress)
     {
         AppUser user = await _userManager.FindByNameAsync(usernameOrEmail);
         if (user == null)
@@ -60,6 +60,9 @@ public class AuthenticationService : IAuthenticationService
             await _accountService.UpdateRefreshTokenAsync(token.RefreshToken, user, token.Expiration, 120);
             return token;
         }
+
+        user.LastLoginIpAddress = ipAddress;
+        await _userManager.UpdateAsync(user);
 
         throw new AuthenticationErrorException();
     }

@@ -1,9 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Nakliye360.API.CustomAttributes.RoleManagement;
 using Nakliye360.Application.Abstractions.Services.Authentication;
+using Nakliye360.Application.Abstractions.Session;
 using Nakliye360.Application.Exceptions.Authentication;
 using Nakliye360.Application.Models.DTOs.Authentication;
 using Nakliye360.Application.Models.DTOs.Authentication.RequestModel;
+using Nakliye360.Application.Models.DTOs.Authentication.ResponseModel;
+using Nakliye360.Domain.Entities.Account;
+using System.Threading.Tasks;
 
 namespace Nakliye360.API.Controllers.Authentication;
 
@@ -13,10 +19,14 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly IAccountService _accountService;
-    public AuthenticationController(IAuthenticationService authenticationService, IAccountService accountService)
+    private readonly ICurrentUserSession _currentUserSession;
+    private readonly UserManager<AppUser> _userManager;
+    public AuthenticationController(IAuthenticationService authenticationService, IAccountService accountService, ICurrentUserSession currentUserSession, UserManager<AppUser> userManager)
     {
         _authenticationService = authenticationService;
         _accountService = accountService;
+        _currentUserSession = currentUserSession;
+        _userManager = userManager;
     }
 
     [HttpPost("register")]
@@ -46,10 +56,10 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequestModel request)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);  
+            return BadRequest(ModelState);
         try
         {
-            Token token = await _authenticationService.LoginAsync(request.UsernameOrEmail, request.Password, 900);
+            Token token = await _authenticationService.LoginAsync(request.UsernameOrEmail, request.Password, 900, _currentUserSession.IpAddress);
             return Ok(token);
         }
         catch (NotFoundUserException)
@@ -100,13 +110,31 @@ public class AuthenticationController : ControllerBase
     [HttpPost("update-password")]
     public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto request)
     {
+        var userId = _currentUserSession.UserId;
 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        await _accountService.UpdatePasswordAsync(request.UserId, request.ResetToken, request.Password);
+        await _accountService.UpdatePasswordAsync(userId, request.ResetToken, request.Password);
         return Ok("Password updated successfully.");
 
     }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        UserProfileResponseModel appuser = new UserProfileResponseModel
+        {
+            UserName = _currentUserSession.UserName,
+            Phone = _currentUserSession.PhoneNumber,
+            PhoneConfirmed = _currentUserSession.PhoneNumberConfirmed == "True" ? true : false,
+            Email = _currentUserSession.Email,
+            EmailConfirmed = _currentUserSession.EmailConfirmed == "True" ? true : false,
+        };
+
+        return Ok(appuser);
+    }
+
 
 }

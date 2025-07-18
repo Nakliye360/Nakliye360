@@ -4,7 +4,7 @@ namespace Nakliye360.Application.Abstractions.Services.Authentication;
 
 public interface IInternalAuthenticationService
 {
-    Task<Token> LoginAsync(string usernameOrEmail, string password, int? accessTokenLifeTime);
+    Task<Token> LoginAsync(string usernameOrEmail, string password, int? accessTokenLifeTime, string ipAdress);
     Task<Token> RefreshTokenLoginAsync(string refreshToken);
     Task<bool> Logout(string userId);
 }

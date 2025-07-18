@@ -6,4 +6,5 @@ public class AppUser : IdentityUser
 {
     public string? RefreshToken { get; set; }
     public DateTime RefreshTokenEndDate { get; set; }
+    public string? LastLoginIpAddress { get; set; }
 }

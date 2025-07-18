@@ -2,13 +2,9 @@
 
 namespace Nakliye360.Application.Models.DTOs.CustomerManagement;
 
-public class CreateCustomerDto
+public class UpdateCustomerDto
 {
-    public string AppUserId { get; set; }
-
-    public CustomerType CustomerType { get; set; }
-
-    public string IdentityNumber { get; set; }
+    public int Id { get; set; }
     public string PhoneNumber { get; set; }
     public string? Email { get; set; }
     public string Address { get; set; }

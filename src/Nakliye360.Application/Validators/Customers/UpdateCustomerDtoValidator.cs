@@ -8,11 +8,11 @@ public class UpdateCustomerDtoValidator : AbstractValidator<UpdateCustomerDto>
 {
     public UpdateCustomerDtoValidator(ICustomerService customerService)
     {
-        RuleFor(x => x.IdentityNumber)
+        RuleFor(x => x.TaxNumber)
             .NotEmpty().WithMessage("Kimlik numarası boş olamaz.")
             .MaximumLength(20);
 
-        RuleFor(x => x.IdentityNumber)
+        RuleFor(x => x.TaxNumber)
        .Must(identityNumber => !customerService.ExistsByIdentityNumberAsync(identityNumber).GetAwaiter().GetResult())
        .WithMessage("Bu kimlik numarası zaten kayıtlı.");
 
@@ -28,7 +28,7 @@ public class UpdateCustomerDtoValidator : AbstractValidator<UpdateCustomerDto>
             .NotEmpty().WithMessage("Adres boş olamaz.")
             .MaximumLength(500);
 
-        RuleFor(x => x.CustomerType)
-            .IsInEnum().WithMessage("Geçerli bir müşteri tipi seçilmelidir.");
+        //RuleFor(x => x.CustomerType)
+        //    .IsInEnum().WithMessage("Geçerli bir müşteri tipi seçilmelidir.");
     }
 }

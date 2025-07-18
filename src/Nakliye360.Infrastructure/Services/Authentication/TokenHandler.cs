@@ -39,7 +39,17 @@ public class TokenHandler : ITokenHandler
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // Kullanıcı ID'si
             new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),  // Kullanıcı adı
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Token ID'si
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Kullanıcı ID'si
+            new Claim(ClaimTypes.Name, user.UserName!), // Kullanıcı adı
+            new Claim(ClaimTypes.MobilePhone, user.PhoneNumber!), // Kullanıcı telefon numarası
+            new Claim(ClaimTypes.Email, user.Email!), // Kullanıcı e-posta adresi
+            new Claim("EmailConfirmed", user.EmailConfirmed.ToString()), // E-posta doğrulama durumu
+            new Claim("PhoneNumberConfirmed", user.PhoneNumberConfirmed.ToString()), // Telefon numarası doğrulama durumu
+            new Claim("IpAddress", user.LastLoginIpAddress ?? string.Empty), // Kullanıcının son giriş IP adresi
+
+
+            
+
 
         };
 

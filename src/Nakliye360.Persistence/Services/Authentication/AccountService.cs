@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Nakliye360.Application.Abstractions.Services.Authentication;
 using Nakliye360.Application.Exceptions.Authentication;
 using Nakliye360.Application.Helpers;
@@ -75,7 +76,7 @@ public class AccountService : IAccountService
         AppUser user = await _userManager.FindByIdAsync(userId);
         if (user != null)
         {
-            resetToken = resetToken.UrlDecode();
+            resetToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken));
             IdentityResult result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
             if (result.Succeeded)
                 await _userManager.UpdateSecurityStampAsync(user);

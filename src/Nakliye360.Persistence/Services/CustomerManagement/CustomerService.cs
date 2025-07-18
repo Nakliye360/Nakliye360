@@ -22,77 +22,159 @@ public class CustomerService : ICustomerService
 
     public async Task<int> CreateCustomerAsync(CreateCustomerDto dto)
     {
-        var customer = new Customer
-        {
-            AppUserId = dto.AppUserId,
-            CustomerType = dto.CustomerType,
-            IdentityNumber = dto.IdentityNumber,
-            PhoneNumber = dto.PhoneNumber,
-            Email = dto.Email,
-            Address = dto.Address,
-        };
+        var customer = _mapper.Map<Customer>(dto);
 
         await _context.Customers.AddAsync(customer);
-        await _context.SaveChangesAsync(); // Customer.Id için
+        await _context.SaveChangesAsync(); // ID üretimi
 
-        switch (dto.CustomerType)
-        {
-            case CustomerType.Individual:
-                await _context.IndividualCustomers.AddAsync(new IndividualCustomer
-                {
-                    CustomerId = customer.Id,
-                    FirstName = dto.FirstName!,
-                    LastName = dto.LastName!
-                });
-                break;
-
-            case CustomerType.Corporate:
-                await _context.CorporateCustomers.AddAsync(new CorporateCustomer
-                {
-                    CustomerId = customer.Id,
-                    CompanyName = dto.CompanyName!,
-                    TaxNumber = dto.TaxNumber!
-                });
-                break;
-
-            case CustomerType.Producer:
-                await _context.ProducerCustomers.AddAsync(new ProducerCustomer
-                {
-                    CustomerId = customer.Id,
-                    CompanyName = dto.CompanyName, // opsiyonel
-                    ProductionType = dto.ProductionType!
-                });
-                break;
-        }
+        // Alt türü ekle
+        await AddCustomerDetailsAsync(customer.Id, dto);
 
         await _context.SaveChangesAsync();
         return customer.Id;
     }
 
-    public async Task DeleteCustomerAsync(int customerId)
+    private async Task AddCustomerDetailsAsync(int customerId, CreateCustomerDto dto)
     {
-        var customer = await _context.Customers.FindAsync(customerId);
+        switch (dto.CustomerType)
+        {
+            case CustomerType.Individual:
+                if (dto.FirstName == null || dto.LastName == null)
+                    throw new ArgumentException("IndividualCustomer için ad ve soyad zorunludur.");
+
+                await _context.IndividualCustomers.AddAsync(new IndividualCustomer
+                {
+                    CustomerId = customerId,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName
+                });
+                break;
+
+            case CustomerType.Corporate:
+                if (dto.CompanyName == null || dto.TaxNumber == null)
+                    throw new ArgumentException("CorporateCustomer için firma adı ve vergi no zorunludur.");
+
+                await _context.CorporateCustomers.AddAsync(new CorporateCustomer
+                {
+                    CustomerId = customerId,
+                    CompanyName = dto.CompanyName,
+                    TaxNumber = dto.TaxNumber
+                });
+                break;
+
+            //case CustomerType.Producer:
+            //    if (dto.ProductionType == null)
+            //        throw new ArgumentException("ProducerCustomer için üretim türü zorunludur.");
+
+            //    await _context.ProducerCustomers.AddAsync(new ProducerCustomer
+            //    {
+            //        CustomerId = customerId,
+            //        CompanyName = dto.CompanyName, // opsiyonel
+            //        ProductionType = dto.ProductionType
+            //    });
+            //    break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(dto.CustomerType), "Geçersiz müşteri türü.");
+        }
+    }
+
+    public async Task<bool> DeleteCustomerAsync(int id)
+    {
+        var customer = await _context.Customers.FindAsync(id);
         if (customer == null)
-            throw new Exception("Customer not found.");
+            throw new KeyNotFoundException("Müşteri bulunamadı.");
+
+        _context.Customers.Remove(customer);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    
+  
+    public async Task<CustomerDto> GetCustomerByIdAsync(int id)
+    {
+        var customer = await _context.Customers
+            .Include(c => c.IndividualCustomer)
+            .Include(c => c.CorporateCustomer)
+            .Include(c => c.ProducerCustomer)
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (customer == null)
+            throw new KeyNotFoundException("Müşteri bulunamadı.");
+
+        return _mapper.Map<CustomerDto>(customer);
+    }
+
+    public async Task<bool> UpdateCustomerAsync(UpdateCustomerDto dto)
+    {
+        var customer = await _context.Customers
+            .Include(c => c.IndividualCustomer)
+            .Include(c => c.CorporateCustomer)
+            .Include(c => c.ProducerCustomer)
+            .FirstOrDefaultAsync(c => c.Id == dto.Id);
+
+        if (customer == null)
+            throw new KeyNotFoundException("Müşteri bulunamadı.");
+
+        customer.PhoneNumber = dto.PhoneNumber;
+        customer.Email = dto.Email;
+        customer.Address = dto.Address;
 
         switch (customer.CustomerType)
         {
             case CustomerType.Individual:
-                var individual = await _context.IndividualCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                if (individual != null) _context.IndividualCustomers.Remove(individual);
+                if (customer.IndividualCustomer != null)
+                {
+                    customer.IndividualCustomer.FirstName = dto.FirstName!;
+                    customer.IndividualCustomer.LastName = dto.LastName!;
+                }
                 break;
+
             case CustomerType.Corporate:
-                var corporate = await _context.CorporateCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                if (corporate != null) _context.CorporateCustomers.Remove(corporate);
+                if (customer.CorporateCustomer != null)
+                {
+                    customer.CorporateCustomer.CompanyName = dto.CompanyName!;
+                    customer.CorporateCustomer.TaxNumber = dto.TaxNumber!;
+                }
                 break;
+
             case CustomerType.Producer:
-                var producer = await _context.ProducerCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                if (producer != null) _context.ProducerCustomers.Remove(producer);
+                if (customer.ProducerCustomer != null)
+                {
+                    customer.ProducerCustomer.ProductionType = dto.ProductionType!;
+                    customer.ProducerCustomer.CompanyName = dto.CompanyName;
+                }
                 break;
         }
 
-        _context.Customers.Remove(customer);
         await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<CustomerDto>> GetCustomerListAsync(CustomerListFilterDto filter)
+    {
+        var query = _context.Customers
+        .Include(c => c.IndividualCustomer)
+        .Include(c => c.CorporateCustomer)
+        .Include(c => c.ProducerCustomer)
+        .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            query = query.Where(c =>
+                c.IdentityNumber.Contains(filter.Search) ||
+                c.PhoneNumber.Contains(filter.Search) ||
+                c.Email.Contains(filter.Search));
+        }
+
+        if (filter.CustomerType.HasValue)
+        {
+            query = query.Where(c => c.CustomerType == filter.CustomerType.Value);
+        }
+
+        var list = await query.OrderByDescending(c => c.Id).ToListAsync();
+        return _mapper.Map<List<CustomerDto>>(list);
     }
 
     public Task<bool> ExistsByIdentityNumberAsync(string identityNumber)
@@ -100,79 +182,4 @@ public class CustomerService : ICustomerService
         return _context.Customers.AnyAsync(x => x.IdentityNumber == identityNumber); // TC/VKN kontrolü
     }
 
-    public async Task<List<CustomerDto>> GetAllAsync()
-    {
-        var customers = await _context.Customers.Where(c=> !c.IsDeleted).ToListAsync();
-        var customerDtos = new List<CustomerDto>();
-
-        foreach (var customer in customers)
-        {
-            var dto = customer.Adapt<CustomerDto>();
-
-            switch (customer.CustomerType)
-            {
-                case CustomerType.Individual:
-                    var individual = await _context.IndividualCustomers.FirstOrDefaultAsync(x => x.CustomerId == customer.Id);
-                    dto.FullName = $"{individual?.FirstName} {individual?.LastName}";
-                    break;
-
-                case CustomerType.Corporate:
-                    var corporate = await _context.CorporateCustomers.FirstOrDefaultAsync(x => x.CustomerId == customer.Id);
-                    dto.CompanyName = corporate?.CompanyName;
-                    dto.TaxNumber = corporate?.TaxNumber;
-                    break;
-
-                case CustomerType.Producer:
-                    var producer = await _context.ProducerCustomers.FirstOrDefaultAsync(x => x.CustomerId == customer.Id);
-                    dto.CompanyName = producer?.CompanyName;
-                    dto.ProductionType = producer?.ProductionType;
-                    break;
-            }
-
-            customerDtos.Add(dto);
-        }
-
-        return customerDtos;
-    }
-
-    public async Task<CustomerDto?> GetCustomerByIdAsync(int customerId)
-    {
-        var customer = await _context.Customers.FirstOrDefaultAsync(x => x.Id == customerId);
-        if (customer == null) return null;
-
-        var dto = customer.Adapt<CustomerDto>();
-
-        switch (customer.CustomerType)
-        {
-            case CustomerType.Individual:
-                var individual = await _context.IndividualCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                dto.FullName = $"{individual?.FirstName} {individual?.LastName}";
-                break;
-            case CustomerType.Corporate:
-                var corporate = await _context.CorporateCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                dto.CompanyName = corporate?.CompanyName;
-                dto.TaxNumber = corporate?.TaxNumber;
-                break;
-            case CustomerType.Producer:
-                var producer = await _context.ProducerCustomers.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-                dto.CompanyName = producer?.CompanyName;
-                dto.ProductionType = producer?.ProductionType;
-                break;
-        }
-
-        return dto;
-    }
-
-    public async Task<string> UpdateCustomerAsync(UpdateCustomerDto request)
-    {
-        var customer = await _context.Customers.FirstOrDefaultAsync(x => x.Id == request.Id);
-        if (customer is null)
-            throw new Exception("Customer not found");
-
-        _mapper.From(request).AdaptTo(customer);
-        _context.Customers.Update(customer);
-        await _context.SaveChangesAsync();
-
-        return "Customer updated successfully.";
-    }
 }
