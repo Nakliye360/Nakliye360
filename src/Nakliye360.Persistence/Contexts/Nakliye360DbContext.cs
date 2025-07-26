@@ -8,6 +8,7 @@ using Nakliye360.Domain.Entities.Account;
 using Nakliye360.Domain.Entities.CustomerManagement;
 using Nakliye360.Domain.Entities.DriverManagement;
 using Nakliye360.Domain.Entities.LoadRequestManagement;
+using Nakliye360.Domain.Entities.OfferManagement;
 using Nakliye360.Domain.Entities.Role;
 using Nakliye360.Domain.Entities.ShipmentManagement;
 using Nakliye360.Persistence.Contexts.Seeder;
@@ -67,6 +68,9 @@ public class Nakliye360DbContext : IdentityDbContext<AppUser, AppRole, string>
 
     #endregion
 
+    #region OfferManagement
+    public DbSet<Offer> Offers { get; set; }
+    #endregion
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

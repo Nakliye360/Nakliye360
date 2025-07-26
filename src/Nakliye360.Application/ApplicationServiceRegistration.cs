@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Nakliye360.Application.Mapping.Companies;
 using Nakliye360.Application.Mapping.DriverManagement;
 using Nakliye360.Application.Mapping.LoadRequestManagement;
+using Nakliye360.Application.Mapping.OfferManagement;
 using Nakliye360.Application.Mapping.OrderManagement;
 using Nakliye360.Application.Mapping.ShipmentManagement;
 using Nakliye360.Application.Mapping.VehicleManagement;
 using Nakliye360.Application.Validators.CustomerManagement;
 using Nakliye360.Application.Validators.DriverManagement;
 using Nakliye360.Application.Validators.LoadRequestManagement;
+using Nakliye360.Application.Validators.OfferManagement;
 using Nakliye360.Application.Validators.OrderManagement;
 using Nakliye360.Application.Validators.ShipmentManagement;
 using Nakliye360.Application.Validators.VehicleManagement;
@@ -34,6 +36,7 @@ public static class ApplicationServiceRegistration
         typeAdapterConfig.Scan(typeof(DriverMappingConfig).Assembly);
         typeAdapterConfig.Scan(typeof(ShipmentMappingConfig).Assembly);
         typeAdapterConfig.Scan(typeof(LoadRequestMappingConfig).Assembly);
+        typeAdapterConfig.Scan(typeof(OfferMappingConfig).Assembly);
 
         services.AddSingleton(typeAdapterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
@@ -48,6 +51,8 @@ public static class ApplicationServiceRegistration
         services.AddValidatorsFromAssemblyContaining<UpdateShipmentDtoValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateLoadRequestDtoValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateLoadRequestDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateOfferDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateOfferDtoValidator>();
         // Application Services
     }
 
