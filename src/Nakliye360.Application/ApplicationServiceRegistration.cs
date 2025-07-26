@@ -4,7 +4,9 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Nakliye360.Application.Mapping.Companies;
+using Nakliye360.Application.Mapping.OrderManagement;
 using Nakliye360.Application.Validators.CustomerManagement;
+using Nakliye360.Application.Validators.OrderManagement;
 using System.Reflection;
 
 namespace Nakliye360.Application;
@@ -19,10 +21,13 @@ public static class ApplicationServiceRegistration
         // Mapster
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
         typeAdapterConfig.Scan(typeof(CompanyMappingConfig).Assembly);
+        typeAdapterConfig.Scan(typeof(OrderMappingConfig).Assembly);
 
         services.AddSingleton(typeAdapterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
         services.AddValidatorsFromAssemblyContaining<CreateCustomerDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateOrderDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateOrderDtoValidator>();
         // Application Services
     }
 

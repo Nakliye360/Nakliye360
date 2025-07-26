@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nakliye360.Application.Abstractions.Services;
 using Nakliye360.Application.Abstractions.Services.Authentication;
 using Nakliye360.Application.Abstractions.Services.CustomerManagement;
+using Nakliye360.Application.Abstractions.Services.OrderManagement;
 using Nakliye360.Application.Abstractions.Services.RoleManagement;
 using Nakliye360.Application.Repositories;
 using Nakliye360.Domain.Entities.Account;
@@ -15,6 +16,7 @@ using Nakliye360.Persistence.Contexts;
 using Nakliye360.Persistence.Repositories;
 using Nakliye360.Persistence.Services.Authentication;
 using Nakliye360.Persistence.Services.CustomerManagement;
+using Nakliye360.Persistence.Services.OrderManagement;
 using Nakliye360.Persistence.Services.RoleManagement;
 using System.Security.Claims;
 using System.Text;
@@ -58,6 +60,7 @@ public static class PersistenceServiceRegistration
 
 
         services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<IOrderService, OrderService>();
 
 
     }

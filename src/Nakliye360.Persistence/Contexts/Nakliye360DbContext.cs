@@ -41,6 +41,11 @@ public class Nakliye360DbContext : IdentityDbContext<AppUser, AppRole, string>
 
     #endregion
 
+    #region OrderManagement
+    public DbSet<Domain.Entities.OrderManagement.Order> Orders { get; set; }
+    public DbSet<Domain.Entities.OrderManagement.OrderItem> OrderItems { get; set; }
+    #endregion
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
