@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Nakliye360.Domain.Entities.Account;
 using Nakliye360.Domain.Entities.Role;
@@ -51,7 +52,8 @@ public static class DbSeeder
         }
 
         // 2. Roles
-        var roles = new[] { "admin", "operator" };
+        // Define built-in roles. Admin and operator already exist; we also introduce customer (yük sahibi) and carrier (araç sahibi)
+        var roles = new[] { "admin", "operator", "customer", "carrier" };
 
         foreach (var roleName in roles)
         {
@@ -82,23 +84,70 @@ public static class DbSeeder
             }
         }
 
-        // 4. RolePermission – assign all permissions to admin
+        // 4. RolePermission – assign permissions to roles
+        var allPermissions = await context.Permissions.ToListAsync();
+
+        // Admin role: all permissions
         var adminRole = await roleManager.FindByNameAsync("admin");
-        var existingRolePermissions = await context.RolePermissions
-            .Where(x => x.RoleId == adminRole.Id)
-            .Select(x => x.PermissionId)
+        await AssignPermissionsToRoleAsync(context, adminRole!.Id, allPermissions.Select(p => p.Id).ToList());
+
+        // Operator role: allow creating and managing shipments, drivers, vehicles and viewing/editing/deleting load requests
+        var operatorRole = await roleManager.FindByNameAsync("operator");
+        var operatorPermissionIds = new List<int>
+        {
+            // Vehicle permissions
+            5, 6, 7, 8,
+            // Driver permissions
+            9, 10, 11, 12,
+            // Shipment permissions
+            13, 14, 15, 16,
+            // LoadRequest permissions (operator can view, edit and delete)
+            18, 19, 20
+        };
+        await AssignPermissionsToRoleAsync(context, operatorRole!.Id, operatorPermissionIds);
+
+        // Customer role: allow creating and managing own load requests
+        var customerRole = await roleManager.FindByNameAsync("customer");
+        var customerPermissionIds = new List<int> { 17, 18, 19, 20 };
+        await AssignPermissionsToRoleAsync(context, customerRole!.Id, customerPermissionIds);
+
+        // Carrier role: allow viewing load requests only
+        var carrierRole = await roleManager.FindByNameAsync("carrier");
+        var carrierPermissionIds = new List<int> { 18 };
+        await AssignPermissionsToRoleAsync(context, carrierRole!.Id, carrierPermissionIds);
+
+        await context.SaveChangesAsync();
+    }
+
+    // Change the type of roleId parameter in AssignPermissionsToRoleAsync method to string
+    private static async Task AssignPermissionsToRoleAsync(Nakliye360DbContext context, string roleId, ICollection<int> permissionIds)
+    {
+        // Fetch existing mappings from the database for the given role
+        var existing = await context.RolePermissions
+            .Where(rp => rp.RoleId == roleId)
             .ToListAsync();
 
-        var allPermissions = await context.Permissions.ToListAsync();
-        var newAssignments = allPermissions
-            .Where(p => !existingRolePermissions.Contains(p.Id))
-            .Select(p => new RolePermission
-            {
-                RoleId = adminRole.Id,
-                PermissionId = p.Id
-            });
+        // Determine which mappings should be removed because they are not in the desired set
+        var toRemove = existing
+            .Where(rp => !permissionIds.Contains(rp.PermissionId))
+            .ToList();
+        if (toRemove.Count > 0)
+        {
+            context.RolePermissions.RemoveRange(toRemove);
+        }
 
-        context.RolePermissions.AddRange(newAssignments);
-        await context.SaveChangesAsync();
+        // Determine which permissions are missing and need to be added
+        var toAdd = permissionIds
+            .Where(pid => existing.All(rp => rp.PermissionId != pid))
+            .ToList();
+        foreach (var pid in toAdd)
+        {
+            context.RolePermissions.Add(new RolePermission
+            {
+                RoleId = roleId,
+                PermissionId = pid
+            });
+        }
+        // Note: Do not call SaveChanges here; caller is responsible for persisting changes.
     }
 }

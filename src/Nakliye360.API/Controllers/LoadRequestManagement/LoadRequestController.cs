@@ -1,7 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Nakliye360.API.CustomAttributes.RoleManagement;
 using Nakliye360.Application.Abstractions.Services.LoadRequestManagement;
 using Nakliye360.Application.Models.DTOs.LoadRequestManagement;
 using Nakliye360.Domain.Enums;
@@ -13,6 +12,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    // Require authentication for all actions; specific permissions are checked via HasPermission attributes
     [Authorize]
     public class LoadRequestController : ControllerBase
     {
@@ -27,6 +27,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
         /// Lists all load requests with optional filtering by load type and vehicle type.
         /// </summary>
         [HttpGet]
+        [HasPermission("LoadRequest.View")]
         public async Task<IActionResult> GetAll([FromQuery] LoadType? loadType, [FromQuery] VehicleType? vehicleType)
         {
             var result = await _loadRequestService.GetAllAsync(loadType, vehicleType);
@@ -37,6 +38,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
         /// Retrieves details of a specific load request.
         /// </summary>
         [HttpGet("{id}")]
+        [HasPermission("LoadRequest.View")]
         public async Task<IActionResult> Get(Guid id)
         {
             var loadRequest = await _loadRequestService.GetByIdAsync(id);
@@ -47,6 +49,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
         /// Creates a new load request.  Returns the identifier of the newly created entity.
         /// </summary>
         [HttpPost]
+        [HasPermission("LoadRequest.Create")]
         public async Task<IActionResult> Create([FromBody] CreateLoadRequestDto dto)
         {
             if (!ModelState.IsValid)
@@ -59,6 +62,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
         /// Updates an existing load request.
         /// </summary>
         [HttpPut]
+        [HasPermission("LoadRequest.Edit")]
         public async Task<IActionResult> Update([FromBody] UpdateLoadRequestDto dto)
         {
             if (!ModelState.IsValid)
@@ -71,6 +75,7 @@ namespace Nakliye360.API.Controllers.LoadRequestManagement
         /// Deletes an existing load request.
         /// </summary>
         [HttpDelete("{id}")]
+        [HasPermission("LoadRequest.Delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _loadRequestService.DeleteAsync(id);
