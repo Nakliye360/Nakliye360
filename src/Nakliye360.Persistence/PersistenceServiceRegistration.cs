@@ -7,8 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 using Nakliye360.Application.Abstractions.Services;
 using Nakliye360.Application.Abstractions.Services.Authentication;
 using Nakliye360.Application.Abstractions.Services.CustomerManagement;
+using Nakliye360.Application.Abstractions.Services.DriverManagement;
 using Nakliye360.Application.Abstractions.Services.OrderManagement;
 using Nakliye360.Application.Abstractions.Services.RoleManagement;
+using Nakliye360.Application.Abstractions.Services.ShipmentManagement;
+using Nakliye360.Application.Abstractions.Services.VehicleManagement;
 using Nakliye360.Application.Repositories;
 using Nakliye360.Domain.Entities.Account;
 using Nakliye360.Domain.Entities.Role;
@@ -16,8 +19,11 @@ using Nakliye360.Persistence.Contexts;
 using Nakliye360.Persistence.Repositories;
 using Nakliye360.Persistence.Services.Authentication;
 using Nakliye360.Persistence.Services.CustomerManagement;
+using Nakliye360.Persistence.Services.DriverManagement;
 using Nakliye360.Persistence.Services.OrderManagement;
 using Nakliye360.Persistence.Services.RoleManagement;
+using Nakliye360.Persistence.Services.ShipmentManagement;
+using Nakliye360.Persistence.Services.VehicleManagement;
 using System.Security.Claims;
 using System.Text;
 
@@ -61,6 +67,9 @@ public static class PersistenceServiceRegistration
 
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IVehicleService, VehicleService>();
+        services.AddScoped<IDriverService, DriverService>();
+        services.AddScoped<IShipmentService, ShipmentService>();
 
 
     }

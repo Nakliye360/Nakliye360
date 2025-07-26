@@ -8,6 +8,7 @@ using Nakliye360.Domain.Entities.Account;
 using Nakliye360.Domain.Entities.CustomerManagement;
 using Nakliye360.Domain.Entities.DriverManagement;
 using Nakliye360.Domain.Entities.Role;
+using Nakliye360.Domain.Entities.ShipmentManagement;
 using Nakliye360.Persistence.Contexts.Seeder;
 using System.Security.Claims;
 
@@ -49,8 +50,17 @@ public class Nakliye360DbContext : IdentityDbContext<AppUser, AppRole, string>
 
     #region VehicleManagement
     public DbSet<Domain.Entities.VehicleManagement.Vehicle> Vehicles { get; set; }
-    public DbSet<Driver> Drivers { get; set; }
     #endregion
+
+    #region DriverManagement
+    public DbSet<Driver> Drivers { get; set; }
+
+    #endregion
+
+    #region ShippingManagement
+    public DbSet<Shipment> Shipments { get; set; }
+    #endregion
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
