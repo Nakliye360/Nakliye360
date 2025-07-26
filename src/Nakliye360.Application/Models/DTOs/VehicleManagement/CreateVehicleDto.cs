@@ -14,5 +14,11 @@ namespace Nakliye360.Application.Models.DTOs.VehicleManagement
         [Required]
         public decimal Capacity { get; set; }
         public VehicleStatus Status { get; set; } = VehicleStatus.Available;
+
+        /// <summary>
+        /// Category of the vehicle.  Required to facilitate matching with load requests.
+        /// </summary>
+        [Required]
+        public VehicleType VehicleType { get; set; }
     }
 }

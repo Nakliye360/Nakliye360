@@ -7,7 +7,7 @@ using Nakliye360.Persistence.Contexts;
 namespace Nakliye360.Persistence.Seeder;
 
 /// <summary>
-/// Seeds initial permissions, roles and admin user. Updated to include vehicle, driver and shipment permissions.
+/// Seeds initial permissions, roles and admin user.  Updated to include vehicle, driver, shipment and load request permissions.
 /// </summary>
 public static class DbSeeder
 {
@@ -38,7 +38,12 @@ public static class DbSeeder
                 new() { Id = 13, Code = "Shipment.Create", Description = "Sevkiyat oluşturma" },
                 new() { Id = 14, Code = "Shipment.View", Description = "Sevkiyat görüntüleme" },
                 new() { Id = 15, Code = "Shipment.Edit", Description = "Sevkiyat güncelleme" },
-                new() { Id = 16, Code = "Shipment.Delete", Description = "Sevkiyat silme" }
+                new() { Id = 16, Code = "Shipment.Delete", Description = "Sevkiyat silme" },
+                // LoadRequest permissions
+                new() { Id = 17, Code = "LoadRequest.Create", Description = "Yük talebi oluşturma" },
+                new() { Id = 18, Code = "LoadRequest.View", Description = "Yük taleplerini görüntüleme" },
+                new() { Id = 19, Code = "LoadRequest.Edit", Description = "Yük talebini güncelleme" },
+                new() { Id = 20, Code = "LoadRequest.Delete", Description = "Yük talebini silme" }
             };
 
             context.Permissions.AddRange(permissions);

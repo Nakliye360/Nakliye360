@@ -33,6 +33,10 @@ namespace Nakliye360.Application.Validators.VehicleManagement
             // Status must be a valid enum value.
             RuleFor(x => x.Status)
                 .IsInEnum().WithMessage("Geçersiz araç durumu seçildi.");
+
+            // VehicleType must be provided and valid.
+            RuleFor(x => x.VehicleType)
+                .IsInEnum().WithMessage("Geçersiz araç tipi seçildi.");
         }
     }
 }

@@ -3,7 +3,7 @@
 namespace Nakliye360.Domain.Entities.VehicleManagement
 {
     /// <summary>
-    /// Represents a vehicle used for transportation.
+    /// Represents a vehicle used for transportation.  Extended to include vehicle type for more precise matching with loads.
     /// </summary>
     public class Vehicle : BaseEntity
     {
@@ -15,5 +15,10 @@ namespace Nakliye360.Domain.Entities.VehicleManagement
         /// </summary>
         public decimal Capacity { get; set; }
         public VehicleStatus Status { get; set; } = VehicleStatus.Available;
+
+        /// <summary>
+        /// Category of the vehicle (e.g., Truck, Van, DumpTruck).  Helps match vehicles to appropriate loads.
+        /// </summary>
+        public VehicleType VehicleType { get; set; } = VehicleType.Unknown;
     }
 }

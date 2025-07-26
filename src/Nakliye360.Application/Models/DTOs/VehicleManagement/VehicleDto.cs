@@ -10,5 +10,10 @@ namespace Nakliye360.Application.Models.DTOs.VehicleManagement
         public string Model { get; set; }
         public decimal Capacity { get; set; }
         public VehicleStatus Status { get; set; }
+
+        /// <summary>
+        /// Category of the vehicle (e.g., Truck, Van, DumpTruck).
+        /// </summary>
+        public VehicleType VehicleType { get; set; }
     }
 }
