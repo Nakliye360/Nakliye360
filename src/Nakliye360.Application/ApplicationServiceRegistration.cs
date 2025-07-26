@@ -4,9 +4,13 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Nakliye360.Application.Mapping.Companies;
+using Nakliye360.Application.Mapping.DriverManagement;
 using Nakliye360.Application.Mapping.OrderManagement;
+using Nakliye360.Application.Mapping.VehicleManagement;
 using Nakliye360.Application.Validators.CustomerManagement;
+using Nakliye360.Application.Validators.DriverManagement;
 using Nakliye360.Application.Validators.OrderManagement;
+using Nakliye360.Application.Validators.VehicleManagement;
 using System.Reflection;
 
 namespace Nakliye360.Application;
@@ -22,12 +26,18 @@ public static class ApplicationServiceRegistration
         var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
         typeAdapterConfig.Scan(typeof(CompanyMappingConfig).Assembly);
         typeAdapterConfig.Scan(typeof(OrderMappingConfig).Assembly);
+        typeAdapterConfig.Scan(typeof(VehicleMappingConfig).Assembly);
+        typeAdapterConfig.Scan(typeof(DriverMappingConfig).Assembly);
 
         services.AddSingleton(typeAdapterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
         services.AddValidatorsFromAssemblyContaining<CreateCustomerDtoValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateOrderDtoValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateOrderDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateVehicleDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateVehicleDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateDriverDtoValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateDriverDtoValidator>();
         // Application Services
     }
 

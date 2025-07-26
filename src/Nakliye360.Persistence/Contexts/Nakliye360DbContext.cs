@@ -6,6 +6,7 @@ using Nakliye360.Application.Abstractions.Session;
 using Nakliye360.Domain.Entities;
 using Nakliye360.Domain.Entities.Account;
 using Nakliye360.Domain.Entities.CustomerManagement;
+using Nakliye360.Domain.Entities.DriverManagement;
 using Nakliye360.Domain.Entities.Role;
 using Nakliye360.Persistence.Contexts.Seeder;
 using System.Security.Claims;
@@ -44,6 +45,11 @@ public class Nakliye360DbContext : IdentityDbContext<AppUser, AppRole, string>
     #region OrderManagement
     public DbSet<Domain.Entities.OrderManagement.Order> Orders { get; set; }
     public DbSet<Domain.Entities.OrderManagement.OrderItem> OrderItems { get; set; }
+    #endregion
+
+    #region VehicleManagement
+    public DbSet<Domain.Entities.VehicleManagement.Vehicle> Vehicles { get; set; }
+    public DbSet<Driver> Drivers { get; set; }
     #endregion
 
 
